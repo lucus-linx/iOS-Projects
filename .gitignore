@@ -39,9 +39,3 @@ Carthage/Build/
 *.swp
 *~
 
-# Large media (untracked, keep repo lean)
-*.mov
-*.mp4
-*.m4v
-*.avi
-*.gif
