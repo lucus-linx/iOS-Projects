@@ -8,12 +8,20 @@
 # Xcode
 xcuserdata/
 *.xcuserstate
+*.xcscmblueprint
 *.xcworkspace/xcuserdata/
 DerivedData/
 build/
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.moved-aside
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+.fleet/
 
 # CocoaPods
 Pods/
@@ -30,3 +38,10 @@ Carthage/Build/
 *.log
 *.swp
 *~
+
+# Large media (untracked, keep repo lean)
+*.mov
+*.mp4
+*.m4v
+*.avi
+*.gif
