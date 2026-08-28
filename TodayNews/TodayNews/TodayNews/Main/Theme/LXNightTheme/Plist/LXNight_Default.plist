@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label.textColor</key>
+	<string>000000</string>
+	<key>View.backgroundColor</key>
+	<string>FFFFFF</string>
+	<key>ViewController.backgroundColor</key>
+	<string>FFFFFF</string>
+	<key>NavigationBar.titleTextColor</key>
+	<string>696969</string>
+	<key>NavigationBar.barTintColor</key>
+	<string>FFFFFF</string>
+	<key>NavigationBar.tintColor</key>
+	<string>696969</string>
+	<key>TabBar.barTintColor</key>
+	<string>FFFFFF</string>
+</dict>
+</plist>

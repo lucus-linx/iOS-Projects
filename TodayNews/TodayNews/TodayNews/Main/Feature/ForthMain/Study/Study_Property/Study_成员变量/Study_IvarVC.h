@@ -1,0 +1,20 @@
+//
+//  Study_IvarVC.h
+//  TodayNews
+//
+//  Created by linxiang on 2018/7/16.
+//  Copyright © 2018年 LX. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface Study_IvarVC : UIViewController
+{
+    UIButton *yourButton;
+    int count;
+    id data;
+}
+
+@property (nonatomic, strong) UIButton *myButton;
+
+@end

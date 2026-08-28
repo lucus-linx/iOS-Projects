@@ -1,0 +1,36 @@
+
+source 'https://github.com/CocoaPods/Specs.git'
+
+platform :ios, '8.0'
+
+	target:"TodayNews" do
+    
+	use_frameworks!
+
+	pod 'AFNetworking', '~> 3.0'
+	
+	pod 'WebViewJavascriptBridge', '~> 5.0'
+
+	pod 'Masonry'
+	
+	pod 'MJExtension'
+	pod 'MJRefresh'
+
+	pod 'SDWebImage', '~> 4.0'
+
+	pod 'SVProgressHUD'
+
+	pod 'PYSearch'	
+
+	pod 'Bugly'
+
+	pod 'DateTools'
+
+	pod 'AvoidCrash', '~> 2.5.2'
+
+	pod "GCDWebServer/WebUploader", "~> 3.0"
+
+	pod 'ReactiveObjC'
+
+end
+
