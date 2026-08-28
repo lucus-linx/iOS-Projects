@@ -32,8 +32,18 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		99E1E5D4304124D90032875E /* Lucus-Finder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				99E1E5FF304124DD00328760 /* Exceptions for "Lucus-Finder" folder in "Lucus-Finder" target */,
+			);
 			path = "Lucus-Finder";
 			sourceTree = "<group>";
+		};
+		99E1E5FF304124DD00328760 /* Exceptions for "Lucus-Finder" folder in "Lucus-Finder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 99E1E5D1304124D90032875E /* Lucus-Finder */;
 		};
 		99E1E5E2304124DD0032875E /* Lucus-FinderTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -403,6 +413,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Lucus-Finder/Info.plist";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -435,6 +446,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Lucus-Finder/Info.plist";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

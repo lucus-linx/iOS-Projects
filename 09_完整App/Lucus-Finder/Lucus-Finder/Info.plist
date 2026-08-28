@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		注册 Finder 右键“服务”菜单项。
+		GENERATE_INFOPLIST_FILE = YES，本文件仅提供 NSServices，其余键由 Xcode 生成合并。
+		新增动作：复制一个 dict 到数组里，NSMessage 需与 ServicesProvider 的 @objc 方法名一致。
+	-->
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Lucus：在此处打开终端</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>openTerminalHere</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Lucus：复制路径</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>copyPath</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+	</array>
+</dict>
+</plist>
