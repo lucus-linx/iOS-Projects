@@ -1,0 +1,40 @@
+# Uncomment the next line to define a global platform for your project
+# platform :ios, '9.0'
+
+source 'https://github.com/CocoaPods/Specs.git'	# 公共仓库
+source 'https://github.com/lionsom/LXSpecs.git'	# 私有仓库
+source 'http://git.qpaas.com/PaasPods/PaasSpecs.git' # 组件化索引库
+
+target 'TestPods_OC' do
+  # Comment the next line if you don't want to use dynamic frameworks
+#  use_frameworks!
+use_modular_headers!
+  
+  # pod 'OnlyOCDemo'          # 全部引入
+#  pod 'OnlyOCDemo/FunctionB'  # 分层引入
+#
+#  pod 'OnlySwiftDemo'
+#  
+#  pod 'OCAddSwiftDemo', '0.1.4'
+#
+#  pod 'SwiftAddOCDemo'
+  
+  pod 'Masonry'
+  
+  pod 'QYCH5', '0.0.1.T.3'
+  
+  pod 'QYCLoginModule', '0.1.27'
+  
+  pod 'BaiduMapKit', '~> 6'
+  pod 'BMKLocationKit', '~> 2'
+
+  target 'TestPods_OCTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+  target 'TestPods_OCUITests' do
+    # Pods for testing
+  end
+
+end

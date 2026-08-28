@@ -1,0 +1,60 @@
+# Uncomment the next line to define a global platform for your project
+
+source 'https://github.com/CocoaPods/Specs.git'
+source 'https://github.com/lionsom/LXSpecs.git'    # 自己的组件化索引库
+
+platform :ios, '10.0'
+
+target 'LXSwift' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  # Pods for LXSwift
+  pod 'Onboard' # 引导页
+
+  pod 'SwiftyUserDefaults', '~> 5.0' # UserDefault扩展
+
+  pod 'SVProgressHUD'           # 菊花
+  pod 'Toast-Swift', '~> 5.0.1' # toast
+
+  pod 'Alamofire', '~> 5.0' # AFNetworking
+  pod 'AlamofireImage', '~> 4.1'
+  pod 'AlamofireNetworkActivityIndicator', '~> 3.1'
+
+  pod 'Kingfisher'  # SDWebImage
+
+  pod 'Moya', '~> 14.0' # 封装了Alamofire
+  pod 'SnapKit', '~> 5.0.0' # Masonry
+  
+  pod 'SwifterSwift'
+  
+  pod 'MJRefresh'
+  
+  pod 'SwiftLint' # 编码规范
+  
+  pod "MarkdownView"
+  
+  pod 'SwiftDate', '~> 6.3.1'
+  
+  pod 'SwiftyJSON', '~> 4.0'
+  
+  pod 'ZLImageEditor'
+  
+  pod 'JZLocationConverterSwift' # 坐标转换
+  
+  pod 'Valet' # Keychain
+  pod 'Hero'
+  pod 'DZNEmptyDataSet'
+  pod 'GDPerformanceView-Swift', '~> 2.0.3'
+  pod 'CryptoSwift', '~> 1.0'
+  pod 'FSCalendar'
+# pod 'ImageViewer'
+
+  # Make by myself
+  pod 'LXScan_Swift'
+
+  # Debug
+  pod 'LookinServer', :configurations => ['Debug']
+  pod 'DoraemonKit', :configurations => ['Debug']
+#  pod 'MLeaksFinder', :configurations => ['Debug']
+end

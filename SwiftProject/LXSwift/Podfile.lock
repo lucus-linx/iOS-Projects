@@ -1,0 +1,172 @@
+PODS:
+  - Alamofire (5.4.3)
+  - AlamofireImage (4.2.0):
+    - Alamofire (~> 5.4)
+  - AlamofireNetworkActivityIndicator (3.1.0):
+    - Alamofire (~> 5.1)
+  - CryptoSwift (1.4.0)
+  - DoraemonKit (3.0.7):
+    - DoraemonKit/Core (= 3.0.7)
+  - DoraemonKit/Core (3.0.7):
+    - FMDB
+    - GCDWebServer
+    - GCDWebServer/WebDAV
+    - GCDWebServer/WebUploader
+  - DZNEmptyDataSet (1.8.1)
+  - FMDB (2.7.5):
+    - FMDB/standard (= 2.7.5)
+  - FMDB/standard (2.7.5)
+  - FSCalendar (2.8.2)
+  - GCDWebServer (3.5.4):
+    - GCDWebServer/Core (= 3.5.4)
+  - GCDWebServer/Core (3.5.4)
+  - GCDWebServer/WebDAV (3.5.4):
+    - GCDWebServer/Core
+  - GCDWebServer/WebUploader (3.5.4):
+    - GCDWebServer/Core
+  - GDPerformanceView-Swift (2.0.3)
+  - Hero (1.6.1)
+  - JZLocationConverterSwift (1.0.1)
+  - Kingfisher (6.3.0)
+  - LookinServer (1.0.2)
+  - LXScan_Swift (0.1.1)
+  - MarkdownView (1.6.0)
+  - MJRefresh (3.6.1)
+  - Moya (14.0.0):
+    - Moya/Core (= 14.0.0)
+  - Moya/Core (14.0.0):
+    - Alamofire (~> 5.0)
+  - Onboard (2.3.3)
+  - SnapKit (5.0.1)
+  - SVProgressHUD (2.2.5)
+  - SwiftDate (6.3.1)
+  - SwifterSwift (5.2.0):
+    - SwifterSwift/AppKit (= 5.2.0)
+    - SwifterSwift/CoreAnimation (= 5.2.0)
+    - SwifterSwift/CoreGraphics (= 5.2.0)
+    - SwifterSwift/CoreLocation (= 5.2.0)
+    - SwifterSwift/Dispatch (= 5.2.0)
+    - SwifterSwift/Foundation (= 5.2.0)
+    - SwifterSwift/MapKit (= 5.2.0)
+    - SwifterSwift/SceneKit (= 5.2.0)
+    - SwifterSwift/SpriteKit (= 5.2.0)
+    - SwifterSwift/StoreKit (= 5.2.0)
+    - SwifterSwift/SwiftStdlib (= 5.2.0)
+    - SwifterSwift/UIKit (= 5.2.0)
+  - SwifterSwift/AppKit (5.2.0)
+  - SwifterSwift/CoreAnimation (5.2.0)
+  - SwifterSwift/CoreGraphics (5.2.0)
+  - SwifterSwift/CoreLocation (5.2.0)
+  - SwifterSwift/Dispatch (5.2.0)
+  - SwifterSwift/Foundation (5.2.0)
+  - SwifterSwift/MapKit (5.2.0)
+  - SwifterSwift/SceneKit (5.2.0)
+  - SwifterSwift/SpriteKit (5.2.0)
+  - SwifterSwift/StoreKit (5.2.0)
+  - SwifterSwift/SwiftStdlib (5.2.0)
+  - SwifterSwift/UIKit (5.2.0)
+  - SwiftLint (0.43.1)
+  - SwiftyJSON (4.3.0)
+  - SwiftyUserDefaults (5.3.0)
+  - Toast-Swift (5.0.1)
+  - Valet (4.1.1)
+  - ZLImageEditor (1.0.1):
+    - ZLImageEditor/Core (= 1.0.1)
+  - ZLImageEditor/Core (1.0.1)
+
+DEPENDENCIES:
+  - Alamofire (~> 5.0)
+  - AlamofireImage (~> 4.1)
+  - AlamofireNetworkActivityIndicator (~> 3.1)
+  - CryptoSwift (~> 1.0)
+  - DoraemonKit
+  - DZNEmptyDataSet
+  - FSCalendar
+  - GDPerformanceView-Swift (~> 2.0.3)
+  - Hero
+  - JZLocationConverterSwift
+  - Kingfisher
+  - LookinServer
+  - LXScan_Swift
+  - MarkdownView
+  - MJRefresh
+  - Moya (~> 14.0)
+  - Onboard
+  - SnapKit (~> 5.0.0)
+  - SVProgressHUD
+  - SwiftDate (~> 6.3.1)
+  - SwifterSwift
+  - SwiftLint
+  - SwiftyJSON (~> 4.0)
+  - SwiftyUserDefaults (~> 5.0)
+  - Toast-Swift (~> 5.0.1)
+  - Valet
+  - ZLImageEditor
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - Alamofire
+    - AlamofireImage
+    - AlamofireNetworkActivityIndicator
+    - CryptoSwift
+    - DoraemonKit
+    - DZNEmptyDataSet
+    - FMDB
+    - FSCalendar
+    - GCDWebServer
+    - GDPerformanceView-Swift
+    - Hero
+    - JZLocationConverterSwift
+    - Kingfisher
+    - LookinServer
+    - MarkdownView
+    - MJRefresh
+    - Moya
+    - Onboard
+    - SnapKit
+    - SVProgressHUD
+    - SwiftDate
+    - SwifterSwift
+    - SwiftLint
+    - SwiftyJSON
+    - SwiftyUserDefaults
+    - Toast-Swift
+    - Valet
+    - ZLImageEditor
+  https://github.com/lionsom/LXSpecs.git:
+    - LXScan_Swift
+
+SPEC CHECKSUMS:
+  Alamofire: e447a2774a40c996748296fa2c55112fdbbc42f9
+  AlamofireImage: 34a2d90b0e5fe6a5605f85ae4b7b01e784c60192
+  AlamofireNetworkActivityIndicator: 6564782bd7b9e6c430ae67d9277af01907b01ca4
+  CryptoSwift: 7cc902df1784de3b389a387756c7d710f197730c
+  DoraemonKit: 32fb97f3aa82efa133111d193080ca5462cef135
+  DZNEmptyDataSet: 9525833b9e68ac21c30253e1d3d7076cc828eaa7
+  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
+  FSCalendar: e6a2eb9c571bf0719ed797ef807e08426753c241
+  GCDWebServer: 2c156a56c8226e2d5c0c3f208a3621ccffbe3ce4
+  GDPerformanceView-Swift: ef3d05deb103e472a5494d3f60aeca5a58b88a7d
+  Hero: 215865ba3ae41dd9bb08cd6c60a645529c6fc94b
+  JZLocationConverterSwift: 4c5107b9b1b5900e7d3bb719a7a1f78df7f3d4fc
+  Kingfisher: 6c3df386db71d82c0817a429d2c9421a77396529
+  LookinServer: d6874df8b58096c8d463817b6baaa3abc21d31f7
+  LXScan_Swift: 2e0b16f65ec8bf589bb302630168bab4c9ce5636
+  MarkdownView: 25c1c2d7ff9706624a575556296e188be3dd3f6b
+  MJRefresh: d2c1970d1cf6e77fcfcdfe76c943dfab8dbfa5c1
+  Moya: 5b45dacb75adb009f97fde91c204c1e565d31916
+  Onboard: 4d6e943e20bdd6bc229df967a347dd7514bc2a6f
+  SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
+  SVProgressHUD: 1428aafac632c1f86f62aa4243ec12008d7a51d6
+  SwiftDate: 72d28954e8e1c6c1c0f917ccc8005e4f83c7d4b2
+  SwifterSwift: 334181863c416882d97b7a60c05054d9e4d799e2
+  SwiftLint: 99f82d07b837b942dd563c668de129a03fc3fb52
+  SwiftyJSON: 6faa0040f8b59dead0ee07436cbf76b73c08fd08
+  SwiftyUserDefaults: 63f80248cf5bfb3458825d9a78f2eb7e1293a040
+  Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
+  Valet: 11ab0e318b7284888a81392e36136563b4af5deb
+  ZLImageEditor: 2da01da10706400ecd37557b7f95993282c52f31
+
+PODFILE CHECKSUM: 319e02744f169cd1b1f04e2a26e073120ebd7a00
+
+COCOAPODS: 1.10.1
