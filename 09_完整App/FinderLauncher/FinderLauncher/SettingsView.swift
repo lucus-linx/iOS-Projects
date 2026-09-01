@@ -9,7 +9,7 @@ import SwiftUI
 import Carbon.HIToolbox
 import ServiceManagement
 
-/// 设置窗口：全局快捷键、终端选择（Terminal / iTerm2）、开机自启、自动化授权入口。
+/// 设置窗口：全局快捷键、终端（打开方式/位置/自定义）、编辑器、开机自启、权限。
 struct SettingsView: View {
 
     @AppStorage("hotkeyEnabled") private var hotkeyEnabled = true
@@ -18,9 +18,17 @@ struct SettingsView: View {
     @AppStorage("hotkeyModifiers") private var hotkeyModifiers = Int(cmdKey | shiftKey)
 
     @AppStorage("terminalKind") private var terminalKind = 0
+    @AppStorage("customTerminalPath") private var customTerminalPath = ""
+    @AppStorage("terminalOpenMode") private var terminalOpenMode = 0
+
+    @AppStorage("editorKind") private var editorKind = 0
+    @AppStorage("customEditorPath") private var customEditorPath = ""
+
     @AppStorage("launchAtLogin") private var launchAtLogin = false
 
     @State private var isITermInstalled = TerminalLauncherFactory.isITermInstalled()
+    @State private var isCursorInstalled = EditorOpenerFactory.isCursorInstalled()
+    @State private var isVSCodeInstalled = EditorOpenerFactory.isVSCodeInstalled()
     @StateObject private var recorder = HotkeyRecorder()
 
     var body: some View {
@@ -52,15 +60,58 @@ struct SettingsView: View {
                     if isITermInstalled {
                         Text("iTerm2").tag(1)
                     }
+                    Text("自定义…").tag(2)
                 }
                 .onChange(of: terminalKind) { _, newValue in
                     if newValue == 1 && !isITermInstalled {
                         terminalKind = 0   // iTerm2 未安装则回退
                     }
                 }
-                Text("将在 Finder 当前目录打开一个新的\(terminalKind == 1 ? "iTerm2" : "Terminal")窗口。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+
+                if terminalKind == 2 {
+                    TextField("终端 App 路径，如 /Applications/kitty.app",
+                              text: $customTerminalPath)
+                }
+
+                Picker("打开位置", selection: $terminalOpenMode) {
+                    Text("新窗口").tag(0)
+                    Text("当前窗口新建标签页").tag(1)
+                }
+
+                if terminalOpenMode == 1 && terminalKind == 2 {
+                    Text("自定义终端暂不支持新建标签页，将始终使用新窗口。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("编辑器") {
+                Picker("用编辑器打开 Finder 目录", selection: $editorKind) {
+                    Text("关闭").tag(0)
+                    if isCursorInstalled {
+                        Text("Cursor").tag(1)
+                    }
+                    if isVSCodeInstalled {
+                        Text("Visual Studio Code").tag(2)
+                    }
+                    Text("自定义…").tag(3)
+                }
+                .onChange(of: editorKind) { _, newValue in
+                    if (newValue == 1 && !isCursorInstalled) || (newValue == 2 && !isVSCodeInstalled) {
+                        editorKind = 0
+                    }
+                }
+
+                if editorKind == 3 {
+                    TextField("编辑器 App 路径，如 /Applications/Nova.app",
+                              text: $customEditorPath)
+                }
+
+                if editorKind != 0 {
+                    Text("菜单栏将出现「用 \(EditorOpenerFactory.displayName()) 打开」项。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section("启动") {
@@ -81,7 +132,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 380)
+        .frame(width: 400)
         .padding(20)
         .onAppear {
             // 同步开机自启状态（用户可能在系统设置里手动改过）。

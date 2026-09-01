@@ -20,11 +20,12 @@ final class AppCommands {
 
     private init() {}
 
-    /// 在当前 Finder 目录打开 Terminal。
+    /// 在当前 Finder 目录打开终端（按设置的终端与打开位置）。
     func openTerminalHere() {
         do {
             let url = try FinderPathProvider.currentDirectory()
-            launcher.openTerminal(at: url)
+            let mode: TerminalOpenMode = UserDefaults.standard.integer(forKey: "terminalOpenMode") == 1 ? .newTab : .newWindow
+            launcher.openTerminal(at: url, mode: mode)
         } catch {
             presentError(error)
         }
@@ -46,6 +47,17 @@ final class AppCommands {
         do {
             let url = try FinderPathProvider.currentDirectory()
             NSWorkspace.shared.open(url)
+        } catch {
+            presentError(error)
+        }
+    }
+
+    /// 用配置的编辑器打开当前 Finder 目录。
+    func openInEditor() {
+        guard let opener = EditorOpenerFactory.make() else { return }
+        do {
+            let url = try FinderPathProvider.currentDirectory()
+            opener.openEditor(at: url)
         } catch {
             presentError(error)
         }

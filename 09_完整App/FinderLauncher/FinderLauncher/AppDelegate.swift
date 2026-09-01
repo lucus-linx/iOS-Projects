@@ -32,6 +32,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 logger.error("预检失败：\(String(describing: error), privacy: .public)")
             }
         }
+
+        // 首次启动欢迎引导。
+        if !UserDefaults.standard.bool(forKey: "hasSeenWelcome") {
+            UserDefaults.standard.set(true, forKey: "hasSeenWelcome")
+            showWelcome()
+        }
+    }
+
+    /// 首次启动弹窗：说明用法与授权。
+    private func showWelcome() {
+        Task { @MainActor in
+            NSApp.activate(ignoringOtherApps: true)
+            let alert = NSAlert()
+            alert.alertStyle = .informational
+            alert.messageText = "欢迎使用 FinderLauncher"
+            alert.informativeText = """
+            在 Finder 当前目录打开终端或编辑器：
+            · 点菜单栏 terminal 图标，或按全局快捷键（默认 ⌘⇧T）
+            · 首次使用会请求「控制 Finder」的授权，点允许即可。
+
+            设置里可切换终端（Terminal / iTerm2 / 自定义）、
+            配置用 Cursor 等编辑器打开、开启开机自启。
+            """
+            alert.addButton(withTitle: "开始使用")
+            alert.runModal()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

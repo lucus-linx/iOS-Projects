@@ -12,32 +12,24 @@
 			containerPortal = 99E1E5CA304124D90032875E /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 99E1E5D1304124D90032875E;
-			remoteInfo = "FinderLauncher";
+			remoteInfo = FinderLauncher;
 		};
 		99E1E5EA304124DD0032875E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 99E1E5CA304124D90032875E /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 99E1E5D1304124D90032875E;
-			remoteInfo = "FinderLauncher";
+			remoteInfo = FinderLauncher;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		99E1E5D2304124D90032875E /* FinderLauncher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FinderLauncher.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		99E1E5DF304124DD0032875E /* FinderLauncherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FinderLauncherTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		99E1E5E9304124DD0032875E /* FinderLauncherUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FinderLauncherUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		99E1E5D2304124D90032875E /* FinderLauncher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinderLauncher.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		99E1E5DF304124DD0032875E /* FinderLauncherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinderLauncherTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		99E1E5E9304124DD0032875E /* FinderLauncherUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinderLauncherUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		99E1E5D4304124D90032875E /* FinderLauncher */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				99E1E5FF304124DD00328760 /* Exceptions for "FinderLauncher" folder in "FinderLauncher" target */,
-			);
-			path = "FinderLauncher";
-			sourceTree = "<group>";
-		};
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		99E1E5FF304124DD00328760 /* Exceptions for "FinderLauncher" folder in "FinderLauncher" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -45,14 +37,25 @@
 			);
 			target = 99E1E5D1304124D90032875E /* FinderLauncher */;
 		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		99E1E5D4304124D90032875E /* FinderLauncher */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				99E1E5FF304124DD00328760 /* Exceptions for "FinderLauncher" folder in "FinderLauncher" target */,
+			);
+			path = FinderLauncher;
+			sourceTree = "<group>";
+		};
 		99E1E5E2304124DD0032875E /* FinderLauncherTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "FinderLauncherTests";
+			path = FinderLauncherTests;
 			sourceTree = "<group>";
 		};
 		99E1E5EC304124DD0032875E /* FinderLauncherUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "FinderLauncherUITests";
+			path = FinderLauncherUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -120,10 +123,10 @@
 			fileSystemSynchronizedGroups = (
 				99E1E5D4304124D90032875E /* FinderLauncher */,
 			);
-			name = "FinderLauncher";
+			name = FinderLauncher;
 			packageProductDependencies = (
 			);
-			productName = "FinderLauncher";
+			productName = FinderLauncher;
 			productReference = 99E1E5D2304124D90032875E /* FinderLauncher.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -143,10 +146,10 @@
 			fileSystemSynchronizedGroups = (
 				99E1E5E2304124DD0032875E /* FinderLauncherTests */,
 			);
-			name = "FinderLauncherTests";
+			name = FinderLauncherTests;
 			packageProductDependencies = (
 			);
-			productName = "FinderLauncherTests";
+			productName = FinderLauncherTests;
 			productReference = 99E1E5DF304124DD0032875E /* FinderLauncherTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -166,10 +169,10 @@
 			fileSystemSynchronizedGroups = (
 				99E1E5EC304124DD0032875E /* FinderLauncherUITests */,
 			);
-			name = "FinderLauncherUITests";
+			name = FinderLauncherUITests;
 			packageProductDependencies = (
 			);
-			productName = "FinderLauncherUITests";
+			productName = FinderLauncherUITests;
 			productReference = 99E1E5E9304124DD0032875E /* FinderLauncherUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
@@ -413,14 +416,14 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "FinderLauncher/Info.plist";
+				INFOPLIST_FILE = FinderLauncher/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.linx.FinderLauncher";
+				PRODUCT_BUNDLE_IDENTIFIER = com.linx.FinderLauncher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -446,14 +449,14 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "FinderLauncher/Info.plist";
+				INFOPLIST_FILE = FinderLauncher/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.linx.FinderLauncher";
+				PRODUCT_BUNDLE_IDENTIFIER = com.linx.FinderLauncher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -475,7 +478,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.linx.FinderLauncherTests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.linx.FinderLauncherTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -496,7 +499,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.linx.FinderLauncherTests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.linx.FinderLauncherTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -515,14 +518,14 @@
 				DEVELOPMENT_TEAM = FL2VP3W5B3;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.linx.FinderLauncherUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.linx.FinderLauncherUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "FinderLauncher";
+				TEST_TARGET_NAME = FinderLauncher;
 			};
 			name = Debug;
 		};
@@ -534,14 +537,14 @@
 				DEVELOPMENT_TEAM = FL2VP3W5B3;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.linx.FinderLauncherUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.linx.FinderLauncherUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "FinderLauncher";
+				TEST_TARGET_NAME = FinderLauncher;
 			};
 			name = Release;
 		};

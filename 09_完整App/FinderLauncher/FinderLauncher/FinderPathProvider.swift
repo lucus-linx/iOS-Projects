@@ -32,10 +32,6 @@ enum FinderPathError: LocalizedError {
 }
 
 /// 读取当前 Finder 窗口的目标目录；无窗口或 Finder 未运行时回退到桌面。
-///
-/// 用 `osascript` 子进程（而非 NSAppleScript）发送 Apple Event：
-/// LSUIElement 菜单栏 App 直接发 Apple Events 时，系统不会弹出 TCC 授权框而是静默拒绝（-1743）；
-/// 从本 App 启动的 osascript 子进程能正常触发授权弹窗，授权归因到本 App。
 enum FinderPathProvider {
 
     /// 取 Finder 前窗目录；front window 取不到时枚举所有窗口兜底；
@@ -68,44 +64,22 @@ enum FinderPathProvider {
             return desktop
         }
 
-        // 用 osascript 子进程发 Apple Event。
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        task.arguments = ["-e", Self.script]
-
-        let outPipe = Pipe()
-        let errPipe = Pipe()
-        task.standardOutput = outPipe
-        task.standardError = errPipe
-
+        let path: String
         do {
-            try task.run()
-            task.waitUntilExit()
+            path = try OSAScriptRunner.run(Self.script)
+        } catch let error as OSAScriptError {
+            switch error {
+            case .tccDenied: throw FinderPathError.tccDenied
+            case .timeoutOrBusy: throw FinderPathError.finderBusy
+            case .unknown(let code, let message):
+                logger.error("osascript 错误 \(code)：\(message, privacy: .public)")
+                throw FinderPathError.unknown(code)
+            }
         } catch {
-            logger.error("启动 osascript 失败：\(String(describing: error), privacy: .public)")
-            throw FinderPathError.unknown(-2)
+            throw FinderPathError.unknown(-1)
         }
 
-        let errText = String(data: errPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-        let outText = String(data: outPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-        logger.debug("osascript exit=\(task.terminationStatus)")
-
-        // 非 0 退出码：错误在 stderr，形如 "… (-1743)"。
-        if task.terminationStatus != 0 {
-            if errText.contains("-1743") || outText.contains("-1743") {
-                throw FinderPathError.tccDenied
-            }
-            if errText.contains("-609") || errText.contains("-608") {
-                throw FinderPathError.finderBusy
-            }
-            logger.error("osascript 错误：\(errText.trimmingCharacters(in: .whitespacesAndNewlines), privacy: .public)")
-            throw FinderPathError.unknown(Int(task.terminationStatus))
-        }
-
-        let path = outText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !path.isEmpty else {
-            throw FinderPathError.unknown(-3)
-        }
+        guard !path.isEmpty else { throw FinderPathError.unknown(-3) }
         logger.info("取到 Finder 目录：\(path, privacy: .public)")
         return URL(fileURLWithPath: path, isDirectory: true)
     }
