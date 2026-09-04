@@ -1,0 +1,16 @@
+PODS:
+  - PLCrashReporter (1.7.1)
+
+DEPENDENCIES:
+  - PLCrashReporter
+
+SPEC REPOS:
+  trunk:
+    - PLCrashReporter
+
+SPEC CHECKSUMS:
+  PLCrashReporter: 92835a24d850ff8026e283a83ed8ce1be9da333f
+
+PODFILE CHECKSUM: 3898ed338657efd1d80025ebd4588546b8932735
+
+COCOAPODS: 1.9.1
