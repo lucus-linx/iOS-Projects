@@ -29,6 +29,16 @@
 		99E1E5E9304124DD0032875E /* Lucus-FinderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lucus-FinderUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		99E1E5FF304124DD00328760 /* Exceptions for "Lucus-Finder" folder in "Lucus-Finder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 99E1E5D1304124D90032875E /* Lucus-Finder */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		99E1E5D4304124D90032875E /* Lucus-Finder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -37,13 +47,6 @@
 			);
 			path = "Lucus-Finder";
 			sourceTree = "<group>";
-		};
-		99E1E5FF304124DD00328760 /* Exceptions for "Lucus-Finder" folder in "Lucus-Finder" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 99E1E5D1304124D90032875E /* Lucus-Finder */;
 		};
 		99E1E5E2304124DD0032875E /* Lucus-FinderTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;

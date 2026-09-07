@@ -1,325 +1,324 @@
-# Lucus-Finder 开发说明：Finder 右键自定义操作（服务菜单）
+# Lucus-Finder
 
-> 目标：在 Finder 中右键任意文件/文件夹，能出现自定义操作，例如「在此处打开终端」。
-> 本文记录完整的实现思路、技术细节、验证方法与扩展方式。
+> macOS Finder 右键「服务」扩展 × 常驻菜单栏后台工具 —— 把打开终端/编辑器、复制、校验和、分享等动作，变成右键即点的操作。
+> 本文档完整说明：**采用方案（为什么这么设计）** 与 **功能清单（每一项做什么、怎么用）**。
 
 ---
 
-## 1. 方案选型
+## 目录
 
-在 macOS 上给 Finder 右键菜单添加自定义项，主要有两条路：
+- [一、一句话概览](#一一句话概览)
+- [二、方案详解（Solution）](#二方案详解solution)
+  - [2.1 需求与约束](#21-需求与约束)
+  - [2.2 技术路线对比与选型](#22-技术路线对比与选型)
+  - [2.3 总体架构](#23-总体架构)
+  - [2.4 关键技术决策明细](#24-关键技术决策明细)
+- [三、功能详解（Features）](#三功能详解features)
+  - [3.1 功能总览](#31-功能总览)
+  - [3.2 打开类](#32-打开类)
+  - [3.3 复制类](#33-复制类)
+  - [3.4 信息类](#34-信息类)
+  - [3.5 分享类](#35-分享类)
+  - [3.6 设置与界面](#36-设置与界面)
+- [四、工程指南（Engineering）](#四工程指南engineering)
+  - [4.1 目录结构](#41-目录结构)
+  - [4.2 如何扩展：加一个动作](#42-如何扩展加一个动作)
+  - [4.3 如何扩展：加终端 / 编辑器 / 复制格式](#43-如何扩展加终端--编辑器--复制格式)
+  - [4.4 构建 / 注册 / 测试](#44-构建--注册--测试)
+  - [4.5 手动验收清单](#45-手动验收清单)
+  - [4.6 排查 FAQ](#46-排查-faq)
+  - [4.7 已知限制与路线图](#47-已知限制与路线图)
 
-### ✅ 采用：NSServices（系统服务菜单）
+---
 
-- 在 `Info.plist` 的 `NSServices` 中声明服务项；
-- 服务项出现在 Finder 右键菜单的「服务」子菜单（动作总数少于 5 个时直接显示在主菜单）；
-- 用户选择后，系统把所选文件/文件夹的**路径以粘贴板形式**传给 App；
-- 优点：官方支持、无需用户手动启用扩展、**文件与文件夹都支持**、添加新动作只改 plist + 加一个方法。
+## 一、一句话概览
 
-### ❌ 放弃：Finder Sync 扩展（`FIFinderSyncController`）
+Lucus-Finder 基于 **NSServices（系统服务菜单）**，在 Finder 右键菜单里提供 11 个动作；App 本体是 **后台（accessory）菜单栏工具**，提供设置与使用说明。全程**沙盒 + 硬签名**，不申请"完全磁盘访问"这类敏感授权，可干净分发。
 
-| 问题 | 说明 |
+---
+
+## 二、方案详解（Solution）
+
+### 2.1 需求与约束
+
+| 需求 | 说明 |
 |---|---|
-| 作用域受限 | 右键菜单只出现在**被监控的目录**内，无法全局生效 |
-| 不跨文件系统 | `/` 作为根也覆盖不到 `/Volumes` 挂载卷 |
-| 独占目录 | 与 iCloud Drive 等扩展冲突，iCloud 目录内不可用 |
-| 启用麻烦 | macOS 15.0 的扩展管理界面一度失效，需命令行 `pluginkit` 处理 |
-| 定位不符 | Apple 明确说明它是为「云盘同步类 App」设计的，不是全局右键菜单工具 |
+| 全局生效 | 任意位置的文件夹/文件都能右键操作（包括挂载卷、iCloud 等） |
+| 官方、稳定、免维护 | 不需要用户去"扩展管理"手动开启，不依赖私有 API |
+| 沙盒友好 | 尽量不要求敏感授权；本工程 `ENABLE_APP_SANDBOX = YES` + 硬签名 |
+| 后台常驻 | 触发服务时不弹主窗口；有入口做设置 |
+| 可扩展 | 加一个新动作低成本、不易出错 |
 
-**结论**：对于「在任意路径打开终端」这类全局动作，NSServices 是最佳方案。
+### 2.2 技术路线对比与选型
+
+早期版本已论证并采用 NSServices，本版延续。三条路线对比：
+
+| 维度 | ✅ NSServices（采用） | Finder Sync 扩展 | Finder 插件 / SIMBL（如 XtraFinder、TotalFinder） |
+|---|---|---|---|
+| 生效范围 | 全局任意路径 | 仅被监控目录，`/Volumes` 挂载卷覆盖不到 | 全局，但侵入 Finder 进程 |
+| 启用 | 自动；必要时去「键盘→服务」勾选 | macOS 15 起系统设置入口失效，需 `pluginkit` 命令 | 需注入 Finder，脆弱 |
+| 目录冲突 | 无 | 与 iCloud 等云盘扩展独占冲突 | 无 |
+| 是否官方 | 是（AppKit 官方机制） | 官方但定位是"云盘同步类 App" | 否 |
+| 能做到 | 选中文件/文件夹右键动作 | 同上（但限定目录） | 顶级子菜单、空白处右键、新建文件等 |
+| 代价 | 菜单项编译期固定，无法运行时增删 | 启用麻烦 + 范围受限 | 需关沙盒/磁盘访问授权，维护成本高 |
+
+> 结论：对"任意路径的开发动作包"这一目标，NSServices 是最优解；代价（菜单项固定）用「行为门控 + 引导系统服务面板」来消化（见 2.4-②）。
+
+同类现网 App 参考：`超级右键`、`闪电右键 QuickRight`、`iMenuX`、`RightClick Pro`（多为 Finder Sync / 插件路线，主打新建文件、图片转换等系统级能力）；`OpenInTerminal`（开发向，与本品定位最接近）。本品刻意保持**轻量、沙盒友好**，不做需磁盘访问授权的功能。
+
+### 2.3 总体架构
+
+```
+Finder 右键 →「服务」菜单（静态 11 项）
+                    │  系统把所选路径以粘贴板形式派发给 Lucus-Finder
+                    ▼
+            ServicesProvider（11 个 @objc 动作）
+                    │  每个动作先查 ActionConfig.isEnabled（行为门控）
+                    │  再转发到对应功能模块；读取权限 = 服务回调内隐式授权
+                    ▼
+   ┌────────────┬─────────────────────────────┬───────────────┐
+   │ AppRegistry│ Terminal/Editor/Finder      │ ClipboardKit  │
+   │ 已装App探测│ 各启动器 / Sharer / 哈希     │ PathFormatting│
+   └────────────┴─────────────────────────────┴───────────────┘
+                    ▲
+   菜单栏 App（.accessory 后台）
+      MenuBarExtra ──► AppWindows ──► 设置窗口(SettingsView)
+                          │             说明窗口(ContentView)
+                          └─ .regular/.accessory 策略切换
+```
+
+### 2.4 关键技术决策明细
+
+#### ① 菜单命名与聚簇 —— 分类 token 首段，去掉品牌前缀
+NSServices 的动作总数 > 约 5 个时，Finder 会收进右键二级「服务」子菜单；Finder **按名称排序，无分组、无分隔线**，且阈值（默认 ~5，跨所有 App 统计）无官方文档、属非契约行为。
+→ 于是每条命名用 `分类：xxx`（如 `工具：复制路径`、`终端：在此处打开`），借首段同前缀天然排序聚簇。13 个「Lucus：」前缀会被系统服务列表和文本菜单重复展示，是噪音，故去掉。
+
+#### ② 设置 = 行为门控，而非"运行时真隐藏"
+NSServices 菜单项**编译期写在 Info.plist**，没有任何运行时 API 能增删单项（`NSUpdateDynamicServices()` 只触发重扫，不改变 plist 内容）。
+→ 因此设置里的动作开关做**行为门控**：关闭后该项仍在 Finder 菜单里，点击不执行。**真正从菜单移除**由用户到「系统设置 → 键盘 → 键盘快捷键 → 服务」取消勾选（OS 原生支持单项显隐），设置页提供「打开系统服务面板」一键跳转兜底。这样保持沙盒不开洞。
+> 想"动态装卸菜单项"的技术方案是 `.service` 附加包（把每动作做成独立 bundle 放 `~/Library/Services`），但需要写主域 Library、涉及沙盒/签名，当前刻意不做（见 §4.7）。
+
+#### ③ 后台化：用运行时 `.accessory`，不写 `LSUIElement`
+在 `applicationWillFinishLaunching` 里 `NSApp.setActivationPolicy(.accessory)`（效果等价 `LSUIElement`，但与"展示窗口时切 `.regular`"的策略码写在一处更内聚）。要点：
+- 常驻**菜单栏图标**（MenuBarExtra），无 Dock 图标；
+- 被 Finder 服务冷启动时**不弹任何窗口**；
+- 要打开设置/说明窗时，固定顺序：`setActivationPolicy(.regular)` → `activate(ignoringOtherApps:)` → 展示窗口；`.accessory` 下仅 `activate()` 往往不足以把窗口带到前台；
+- `NSWindow.willCloseNotification` 观察器在"没有可见主窗口"时自动切回 `.accessory`；
+- SwiftUI 场景只留 `MenuBarExtra`；设置/说明窗口由 `HostedWindow`（AppKit 托管 SwiftUI 的 NSWindow）承载，绕开 accessory 无主菜单导致 `showSettingsWindow:` 不可达的问题。
+
+#### ④ 沙盒读取边界 —— "当场做完，不存路径"
+服务回调 = "用户当场选中这些文件"，系统把所选路径的**读取**权限授予本 App（stat / 读内容 / 算哈希 / 分享都允许）。
+→ 限制：不能写回源文件旁；读取授权不跨调用持久。因此**哈希、分享都在回调内当场完成**，绝不把路径存下来稍后再读。`urlForApplication` 走 XPC 查 LaunchServices，也属沙盒允许。
+
+#### ⑤ 服务冷启动时序 —— 注册要"最先 + 同步"
+pbs（服务菜单守护进程）先把 App 启动到完成 launch，服务消息在 `applicationDidFinishLaunching` 返回、主 run loop 起跑后才会送达 provider。
+→ 只要在 didFinishLaunching **同步**赋 `NSApp.servicesProvider` 就严格先于任何回调，无竞态；切勿推迟到异步任务里再注册。DEBUG 构建才调 `NSUpdateDynamicServices()`（开发期改 plist 后强制刷新）。
+
+#### ⑥ 在目录打开终端 —— 按 App 分派，无统一契约
+"用 App 在目录开新会话"没有统一 API，不同终端各自机制。分派表（机制已实现）：
+
+| 目标 | Bundle ID | 机制 | 授权 | 实测 |
+|---|---|---|---|---|
+| Terminal | `com.apple.Terminal` | `NSWorkspace.open(dir, withApplicationAt:)`（LS odoc） | 无 | ✅ 已实测 |
+| Warp | `dev.warp.Warp-Stable` | URL scheme `warp://action/new_window?path=` | 无 | 待实测 |
+| Ghostty | `com.mitchellh.ghostty` | CLI `+new-window --working-directory=` | 无 | 待实测 |
+| iTerm2 | `com.googlecode.iterm2` | `/usr/bin/osascript`（`create window` + `write text "cd '…'"`） | 首次弹"控制 iTerm2" | 待实测 |
+
+> 表中"待实测"项请在你机器上各触发一次并把结果写回来；这是各 App 版本相关行为，不承诺跨版本契约。终端集合 = `AppRegistry.terminals`，菜单只暴露 1 个「终端：在此处打开」，用设置里的"默认终端"决定落到哪款。
+
+#### ⑦ 编辑器打开 & Xcode 特判
+VSCode / Cursor / Sublime / CotEditor 都处理 `odoc`（文件夹=工作区、文件=开标签），直接 `NSWorkspace.open(url, withApplicationAt:)`。Xcode 特判：
+- 文件 / `.xcodeproj` / `.xcworkspace` / `.playground` → `/usr/bin/xed` 打开；
+- 纯目录 → 扫目录内首个工程文件，扫不到就交给 Xcode 打开文件夹。
+
+#### ⑧ 「显示简介」：osascript + `as alias` + 降级
+实测正确语句必须是 **`open information window of (POSIX file "…" as alias)`**（缺 `as alias` 会报 -1728）。经 `/usr/bin/osascript` 子进程执行（异步 + 完成回调）。被 TCC 自动化授权拒绝（首次弹「允许 Lucus-Finder 控制 Finder」，之后在 系统设置→隐私与安全性→自动化 里管理）时，降级为 `NSWorkspace.activateFileViewerSelecting`（Finder 里选中高亮，零授权成本）。沙盒不拦 osascript 子进程，拦的是 TCC 授权这一层。
+
+#### ⑨ Info.plist 合并 & 免改 pbxproj & 方法名同源
+- 工程 `GENERATE_INFOPLIST_FILE = YES` + 自定义 `Lucus-Finder/Info.plist`（只放 `NSServices`）合并，产物只含 `Contents/Info.plist`；
+- 源码用 Xcode 文件系统同步组：新增 `.swift` 放进 `Lucus-Finder/` 目录**自动进 target，pbxproj 零改动**（`Info.plist` 已用 membershipExceptions 排除，避免被当资源重复拷贝）；
+- 每条 `NSMessage` 必须与 `ServicesProvider` 的 `@objc` 方法名一字不差，否则"菜单能看、点击没反应、不报错"。DEBUG 启动 `verifyPlistMessagesMatch()` 用 `responds(to:)` 逐一校验。
+
+#### ⑩ 并发模型
+`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`（Xcode 26 默认）。服务回调、AppKit/NSWorkspace 回调本就在主线程，`ServicesProvider` 等直接吃默认即可；不要把服务方法标成非隔离。纯字符串/URL 格式化（`PathFormatting`）显式 `nonisolated`，便于脱离主线程与单测。
 
 ---
 
-## 2. 技术原理
+## 三、功能详解（Features）
 
-### 2.1 NSServices 的工作机制
+### 3.1 功能总览
 
-```
-Finder 右键选择文件/文件夹
-      │  选中「Lucus：在此处打开终端」
-      ▼
-LaunchServices 找到提供该服务的 App（com.linx.Lucus-Finder）
-      │  若 App 未运行则先启动它
-      ▼
-系统把所选路径写入 NSPasteboard，调用 servicesProvider 上的方法
-      │  selector 名 = Info.plist 里的 NSMessage
-      ▼
-App 从粘贴板读出路径 → 执行自定义动作（打开终端 / 复制路径）
-```
+| 菜单名（按分类聚簇） | 类型 | 一句话 | 生效对象 |
+|---|---|---|---|
+| 终端：在此处打开 | 打开 | 用默认终端在目标目录开新会话 | 文件夹=自身；文件=父目录 |
+| 编辑器：在此处打开 | 打开 | 用默认编辑器打开 | 目录=工作区；文件=开标签 |
+| 工程：用 Xcode 打开 | 打开 | 工程/文件进 Xcode | 见 3.2 |
+| 工具：复制路径 | 复制 | 复制 POSIX 绝对路径 | 首项 |
+| 工具：复制文件名 | 复制 | 复制文件名（含扩展名） | 首项 |
+| 工具：复制文件名（无后缀） | 复制 | 复制文件名（不含扩展名，点文件原样） | 首项 |
+| 工具：复制为 file:// 链接 | 复制 | 复制百分号编码的绝对 URL | 首项 |
+| 信息：计算并复制 MD5 | 信息 | 增量算 MD5，结果进剪贴板 | 单个文件 |
+| 信息：计算并复制 SHA-256 | 信息 | 增量算 SHA-256，结果进剪贴板 | 单个文件 |
+| 信息：显示简介 | 信息 | 打开系统「显示简介」；被拒则 Finder 定位 | 首项 |
+| 分享：隔空投送… | 分享 | AirDrop 分享所选文件 | **多选全部分享** |
 
-三个关键要素缺一不可：
+说明：**生效对象** 中"首项"指多选时只处理第一个（沿用早期行为）；复制/哈希/简介保持单目标，AirDrop 已支持多选。
 
-1. **Info.plist 声明**（`NSServices`）：告诉系统「我有这些服务、接受什么类型」；
-2. **运行时注册**（`NSApp.servicesProvider = ...`）：把实现了服务方法的对象交给系统；
-3. **方法签名**：`@objc` 方法，且方法名与 `NSMessage` 严格一致。
+### 3.2 打开类
 
-### 2.2 服务方法签名（必须精确匹配）
+**终端：在此处打开**（`openTerminalHere`）
+- 触发：右键文件夹 / 文件 → 服务 → 本项。
+- 行为：右键文件夹以该文件夹为目录打开；右键文件在其**父目录**打开。
+- 用哪款终端：由设置「默认终端」决定（候选 Terminal / iTerm2 / Warp / Ghostty，自动检测已装）。改默认即可换终端，无需改菜单。
 
-```swift
-@objc func openTerminalHere(_ pboard: NSPasteboard,
-                            userData: String,
-                            error: AutoreleasingUnsafeMutablePointer<NSString?>)
-```
+**编辑器：在此处打开**（`openInEditor`）
+- 触发：右键目录 / 文件。
+- 行为：目录作为工作区、文件开标签。
+- 用哪款：设置「默认编辑器」（候选 VSCode / Cursor / Sublime / CotEditor；未设置时自动落到第一个已安装项）。
 
-- `pboard`：传入所选路径的粘贴板；
-- 方法名 `openTerminalHere` 与 plist 中 `NSMessage` 的字符串一致。
+**工程：用 Xcode 打开**（`openInXcode`）
+- 触发：右键 `.xcodeproj/.xcworkspace/.playground`、任意代码文件、或工程目录。
+- 行为：工程/文件直接进 Xcode（`xed`）；目录先扫首个工程，扫不到则交给 Xcode 打开文件夹。
 
-### 2.3 文件如何传入
+### 3.3 复制类
 
-`NSSendFileTypes` 声明了服务接受 `public.item`（根 UTI，同时匹配文件与文件夹）。Finder 传参时，粘贴板的 `public.file-url` 类型里是一组 **POSIX 路径字符串**：
+统一动作：把结果写入系统剪贴板（会先 `clearContents`）。
+- **复制路径**：如 `/Users/me/Desktop/report.md`。
+- **复制文件名**：如 `report.md`。
+- **复制文件名（无后缀）**：如 `report`。点文件（如 `.gitignore`）原样返回。
+- **复制为 file:// 链接**：如 `file:///Users/me/Desktop/report.md`，空格等自动百分号编码，适合拖进浏览器/聊天框当可点链接。
 
-```swift
-let paths = pboard.propertyList(forType: .fileURL) as? [String]
-// 例如：["/Users/qiyeyun/Desktop/foo"]
-```
+### 3.4 信息类
 
-兼容旧粘贴板类型 `NSFilenamesPboardType`（`"NSFilenamesPboardType"`）作为兜底。
+- **MD5 / SHA-256**：用 CryptoKit 分块增量计算（`Insecure.MD5` / `SHA256`），结果（纯小写十六进制）写剪贴板，便于与 `md5`、`shasum -a 256` 比对。目录不适用（无内容可算）。
+- **显示简介**：调用 Finder 打开系统自带的「显示简介」面板，看到大小/权限/日期等系统原生信息；首次会请求"控制 Finder"授权，拒绝后自动降级为在 Finder 中选中并高亮该文件。
 
----
+### 3.5 分享类
 
-## 3. 代码实现
+**隔空投送…**（`airDropFile`）：多选文件一次分享；基于 `NSSharingService(.sendViaAirDrop)`。设备/系统不支持 AirDrop 或无读权限时打印提示、不动作。
 
-### 3.1 文件清单
+### 3.6 设置与界面
 
-| 文件 | 类型 | 职责 |
+| 入口 | 说明 |
+|---|---|
+| 菜单栏图标 | 常驻图标，点击弹出：偏好设置… / 使用说明… / 打开系统服务面板 / 退出 |
+| 设置窗口 | 见下表设置项；由菜单栏「偏好设置…」或说明窗右上按钮打开 |
+| 使用说明窗口 | 首次启动自动带出一次；可随时从菜单栏再开 |
+
+**设置项详解：**
+
+| 设置 | 作用 | 默认 |
 |---|---|---|
-| `Lucus-Finder/Info.plist` | 新增 | 声明两个 NSServices |
-| `Lucus-Finder/ServicesProvider.swift` | 新增 | 服务提供者：实现两个 `@objc` 动作方法 |
-| `Lucus-Finder/Lucus_FinderApp.swift` | 修改 | 加 `AppDelegate`，注册 servicesProvider |
-| `Lucus-Finder/ContentView.swift` | 修改 | 主界面使用说明 |
-| `Lucus-Finder.xcodeproj/project.pbxproj` | 修改 | 加 `INFOPLIST_FILE`；排除 Info.plist 重复拷贝 |
+| 默认终端 | 决定「终端：在此处打开」落到哪款 | Terminal（`com.apple.Terminal`） |
+| 默认编辑器 | 决定「编辑器：在此处打开」落到哪款 | 自动选第一个已安装编辑器 |
+| 启用动作 ×11 | **行为门控**：关掉后对应动作点击不执行 | 全开 |
+| 打开系统服务面板 | 跳「系统设置→键盘」，进去点「键盘快捷键→服务」可**真正勾选显隐**每项 | — |
 
-### 3.2 `Info.plist`（NSServices 声明）
-
-```xml
-<key>NSServices</key>
-<array>
-    <dict>
-        <key>NSMenuItem</key>
-        <dict>
-            <key>default</key>
-            <string>Lucus：在此处打开终端</string>
-        </dict>
-        <key>NSMessage</key>
-        <string>openTerminalHere</string>
-        <key>NSSendFileTypes</key>
-        <array>
-            <string>public.item</string>
-        </array>
-        <key>NSRequiredContext</key>
-        <dict/>
-    </dict>
-    <dict>  <!-- 复制路径：同理，NSMessage = copyPath -->
-        ...
-    </dict>
-</array>
-```
-
-要点：
-- `NSMessage` **必须**与 `ServicesProvider` 里的 `@objc` 方法名一字不差；
-- `NSSendFileTypes` 只接受 **UTI**（`public.folder` 仅文件夹 / `public.item` 全部）；
-- `NSRequiredContext` 留空 dict，表示任何上下文都可用。
-
-### 3.3 `ServicesProvider.swift`
-
-```swift
-import AppKit
-
-final class ServicesProvider: NSObject {
-
-    /// 右键文件夹 → 在该目录打开终端；右键文件 → 在其父目录打开终端。
-    @objc func openTerminalHere(_ pboard: NSPasteboard,
-                                userData: String,
-                                error: AutoreleasingUnsafeMutablePointer<NSString?>) {
-        guard let firstPath = paths(from: pboard).first else { return }
-        let directory = directoryURL(for: URL(fileURLWithPath: firstPath))
-        openTerminal(at: directory)
-    }
-
-    @objc func copyPath(_ pboard: NSPasteboard,
-                        userData: String,
-                        error: AutoreleasingUnsafeMutablePointer<NSString?>) {
-        guard let firstPath = paths(from: pboard).first else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(firstPath, forType: .string)
-    }
-
-    private func paths(from pboard: NSPasteboard) -> [String] {
-        if let paths = pboard.propertyList(forType: .fileURL) as? [String] {
-            return paths
-        }
-        let legacy = NSPasteboard.PasteboardType("NSFilenamesPboardType")
-        if let paths = pboard.propertyList(forType: legacy) as? [String] {
-            return paths
-        }
-        return []
-    }
-
-    /// 文件 → 取父目录；文件夹 → 用自身。
-    private func directoryURL(for url: URL) -> URL {
-        var isDirectory: ObjCBool = false
-        FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
-        return isDirectory.boolValue ? url : url.deletingLastPathComponent()
-    }
-
-    private func openTerminal(at url: URL) {
-        let terminalApp = URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app")
-        let config = NSWorkspace.OpenConfiguration()
-        config.activates = true
-        NSWorkspace.shared.open([url], withApplicationAt: terminalApp,
-                                configuration: config) { _, error in
-            if let error { print("打开终端失败：\(error)") }
-        }
-    }
-}
-```
-
-### 3.4 `Lucus_FinderApp.swift`（注册服务提供者）
-
-```swift
-@main
-struct Lucus_FinderApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    var body: some Scene {
-        WindowGroup { ContentView() }
-    }
-}
-
-final class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.servicesProvider = ServicesProvider()
-        NSUpdateDynamicServices()   // 开发期 Info.plist 变更后强制刷新服务缓存
-    }
-}
-```
-
-> 不注册 `servicesProvider`，菜单能显示但点了没反应——服务动作由它回调。
+> 设置只存 UserDefaults（容器内），沙盒 App 的标准做法；动作开关与门控共用 `ActionConfig` 一个真源。
 
 ---
 
-## 4. 工程配置要点（踩坑记录）
+## 四、工程指南（Engineering）
 
-### 4.1 自定义 Info.plist 与自动生成合并
+### 4.1 目录结构
 
-工程默认 `GENERATE_INFOPLIST_FILE = YES`（自动生成 Info.plist）。`NSServices` 没有对应的 `INFOPLIST_KEY_*` 构建设置，必须放进自定义 plist 文件。
+| 文件 | 职责 |
+|---|---|
+| `Lucus_FinderApp.swift` | `@main`：MenuBarExtra 场景 + AppDelegate（注册 provider / `.accessory` 策略 / 首启引导 / 关窗 demote） |
+| `AppWindows.swift` | `.accessory/.regular` 切换；`HostedWindow`（AppKit 托管 SwiftUI 的可复用窗口，装设置窗/说明窗） |
+| `AppMenuView.swift` | 菜单栏下拉菜单 |
+| `SettingsView.swift` | 默认终端/编辑器 Picker + 动作开关 + 跳系统服务面板 |
+| `ContentView.swift` | 使用说明窗口内容 |
+| `ServicesProvider.swift` | 11 个 `@objc` 动作 + 门控 + 路径解析 + plist/method 自检 |
+| `ActionConfig.swift` | `ActionID` 枚举 + UserDefaults 开关（设置与门控唯一真源） |
+| `AppRegistry.swift` | 已知 bundle id 探测已装 App（缓存，沙盒安全） |
+| `TerminalLauncher.swift` | 按 App 分派在目录打开终端（见 2.4-⑥） |
+| `EditorLauncher.swift` | 通用编辑器打开 + Xcode 特判（工程扫描 / `xed`） |
+| `ClipboardKit.swift` | 剪贴板写入 |
+| `PathFormatting.swift` | 纯字符串/URL 格式化（文件名切分、shell/AppleScript 转义等，可单测） |
+| `FileDigest.swift` | CryptoKit MD5 / SHA-256 分块增量计算 |
+| `FinderBridge.swift` | osascript 开「显示简介」+ 降级 |
+| `Sharer.swift` | AirDrop 分享 |
+| `ProcessRunner.swift` | 外部进程运行（fire-and-forget / 异步回调） |
+| `SystemPanel.swift` | 打开系统服务面板 |
+| `Info.plist` | 仅 `NSServices`（11 项），与 GENERATE_INFOPLIST_FILE 合并 |
+| `Lucus-FinderTests/` | Swift Testing 单测（纯函数转义/切分用例） |
 
-两者**可以共存合并**：在 pbxproj 的 App target **Debug / Release 两个配置**里都加上：
+### 4.2 如何扩展：加一个动作
 
-```
-GENERATE_INFOPLIST_FILE = YES;      // 保留，负责生成 CFBundle* 等常规键
-INFOPLIST_FILE = "Lucus-Finder/Info.plist";   // 新增，只放 NSServices
-```
+三步（其余自动完成）：
+1. **`Info.plist`**：`NSServices` 数组复制一个 dict，改菜单名（用 `分类：xxx`）与 `NSMessage`（如 `copyMarkdownLink`）；
+2. **`ServicesProvider.swift`**：加同名 `@objc` 方法，首行加 `guard ActionConfig.shared.isEnabled(.xxx) else { return }` 再转发逻辑；
+3. **`ActionConfig.swift`**：`ActionID` 补一个 case（含 `displayName` / `groupName` / `systemImage`），它会自动出现在设置页开关清单里。
 
-最终构建产物是两者合并的结果，`NSServices` 会进入 `Contents/Info.plist`。
+然后 构建 + 重注册（见 4.4）。DEBUG 启动自检会帮你确认 NSMessage 与方法名一致。
 
-### 4.2 文件系统同步组会重复拷贝 Info.plist
+### 4.3 如何扩展：加终端 / 编辑器 / 复制格式
 
-工程用 Xcode 16+ 的**文件系统同步组**（`PBXFileSystemSynchronizedRootGroup`）管理源码：
-- 好处：`.swift` 文件放进 `Lucus-Finder/` 目录**自动进 target**，无需手工改 pbxproj 的 Sources 列表；
-- 坑：`Info.plist` 放在该目录里会被当作资源拷进 `Contents/Resources/Info.plist`，构建报警告。
+- **加一款终端**：`AppRegistry.terminals` 补 {bundle id, 名称}；`TerminalLauncher.open` 的 switch 里补对应的打开机制（LS / URL scheme / CLI / AppleScript），并更新 2.4-⑥ 实测表。
+- **加一款编辑器**：`AppRegistry.editors` 补一项即可（走通用 `NSWorkspace.open`，前提是它处理 `odoc`）。
+- **加一种复制格式**：`PathFormatting` 加一个纯函数（`nonisolated`，顺手补单测）+ `ClipboardKit` 复用 + 按 4.2 三步挂一个新动作。
 
-**修复**：给同步组加 `PBXFileSystemSynchronizedBuildFileExceptionSet` 排除它：
-
-```
-99E1E5D4304124D90032875E /* Lucus-Finder */ = {
-    isa = PBXFileSystemSynchronizedRootGroup;
-    exceptions = (
-        99E1E5FF304124DD00328760 /* Exceptions ... */,
-    );
-    path = "Lucus-Finder";
-    sourceTree = "<group>";
-};
-// 对应异常集对象：
-{
-    isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-    membershipExceptions = ( Info.plist, );
-    target = 99E1E5D1304124D90032875E /* Lucus-Finder */;
-}
-```
-
-### 4.3 沙盒与签名
-
-- 工程已开 `ENABLE_APP_SANDBOX = YES`：服务经粘贴板传路径、用 `NSWorkspace` 打开 Terminal 都属于沙盒允许的操作，**无需改沙盒配置**；
-- 自动签名（`DEVELOPMENT_TEAM = FL2VP3W5B3`）+ 硬性运行时（`ENABLE_HARDENED_RUNTIME = YES`），直接构建即可。
-
-### 4.4 Swift 并发默认值
-
-工程设置了 `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`（Xcode 26 新默认）。服务回调本来就发生在主线程，`ServicesProvider` 继承该默认即可，无需额外标注。
-
----
-
-## 5. 验证方法
-
-### 5.1 命令行构建
+### 4.4 构建 / 注册 / 测试
 
 ```bash
+# 构建（Debug）
 xcodebuild -project Lucus-Finder.xcodeproj -scheme Lucus-Finder \
            -configuration Debug -derivedDataPath /tmp/lucus-dd build
+
+# 校验产物：11 项服务、无 Resources/Info.plist 重复拷贝告警
+plutil -p /tmp/lucus-dd/Build/Products/Debug/Lucus-Finder.app/Contents/Info.plist | grep -c NSMessage
+
+# 注册 + 启动（首启自动弹说明窗；常驻菜单栏、无 Dock）
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f <app>
+open <app>
+
+# 交叉核对 NSMessage 与 @objc 方法名（应无 diff）
+/usr/libexec/PlistBuddy -c "Print :NSServices" Lucus-Finder/Info.plist | grep NSMessage | sed 's/.*= //' | sort
+grep -oE '@objc func [a-zA-Z0-9]+' Lucus-Finder/ServicesProvider.swift | awk '{print $3}' | sort
+
+# 单元测试
+xcodebuild test -project Lucus-Finder.xcodeproj -scheme Lucus-Finder \
+                -destination 'platform=macOS' -only-testing:Lucus-FinderTests \
+                -derivedDataPath /tmp/lucus-dd
 ```
 
-重点检查：构建成功；**无** `Copy Bundle Resources ... Info.plist` 警告；产物只应有 `Contents/Info.plist`、不应有 `Contents/Resources/Info.plist`。
+### 4.5 手动验收清单
 
-校验产物里的服务声明：
+在 Finder 里逐项打勾（自动化只能覆盖到构建/自检/单测，右键级联需人肉过一遍）：
 
-```bash
-plutil -p /tmp/lucus-dd/Build/Products/Debug/Lucus-Finder.app/Contents/Info.plist \
-  | grep -A6 NSServices
-```
+- [ ] 右键**文件夹** → 终端在自身目录打开；改"默认终端"后再触发，落在新选的终端（Terminal 已实测；iTerm2/Warp/Ghostty 触发后回填 §2.4-⑥）
+- [ ] 右键**单个文件** → 终端在其**父目录**打开
+- [ ] 右键目录 → 编辑器作为工作区打开；右键文件 → 开标签
+- [ ] 右键 `.xcodeproj`/工程目录 → 进 Xcode
+- [ ] 复制 路径 / 文件名 / 无后缀 / file:// 四种各粘贴一次检查
+- [ ] MD5 / SHA-256 与终端 `md5`、`shasum -a 256` 比对一致
+- [ ] 显示简介：首次允许授权 → 弹出系统简介；到系统设置**撤销**授权再点 → 降级为 Finder 定位
+- [ ] 多选文件 → 隔空投送弹出、能分享
+- [ ] 关闭所有窗口 → 从 Finder 触发任一服务，App 冷启动且**不弹窗**
+- [ ] 设置里关掉「计算 MD5」→ 右键该项点击无副作用；「打开系统服务面板」可跳转并真取消勾选
+- [ ] 删除 `~/Library/Containers/com.linx.Lucus-Finder` 后重启 App → 首次启动说明窗再出现一次
 
-### 5.2 注册服务
+### 4.6 排查 FAQ
 
-首次构建后 App 必须被 LaunchServices 识别，服务项才会出现在菜单里：
+| 现象 | 处理 |
+|---|---|
+| 右键看不到本 App 的服务 | 系统设置→键盘→键盘快捷键→服务 勾选对应项；`lsregister -f <app>` 重注册；必要时 `killall Finder`；装过旧版先清掉旧 .app |
+| 菜单能看到、点下去没反应 | 99% 是 `NSMessage` 与 `@objc` 方法名不一致 → 改 plist 后重新构建 + 重注册；看 DEBUG 启动日志的自检输出 |
+| 点「显示简介」没反应 | 到 系统设置→隐私与安全性→自动化 允许 Lucus-Finder 控制 Finder；被拒时已自动降级为 Finder 定位 |
+| 改了 plist 但菜单不更新 | 重新构建 → `lsregister -f` → 必要时 `killall Finder`；`NSUpdateDynamicServices()` 只在 DEBUG 生效 |
+| 右键**空白处**没有菜单 | 正常：服务绑定在**选中的文件/文件夹**上，空白处无选中项 |
+| 菜单项太多/不想要某几个 | 打开系统服务面板取消勾选（真移除）；或设置里关掉对应开关（仅停用行为） |
 
-```bash
-# 启动 App 一次（注册 NSServices 并设置运行时 servicesProvider）
-open /path/to/Lucus-Finder.app
+### 4.7 已知限制与路线图
 
-# 若此前装过旧版本，强制重注册：
-/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /path/to/Lucus-Finder.app
-
-# 菜单未刷新时重启 Finder：
-killall Finder
-```
-
-### 5.3 功能测试
-
-1. Finder 右键**文件夹** → 服务 → 「Lucus：在此处打开终端」→ Terminal 以该目录开新窗口；
-2. 右键单个**文件** → 同上 → 终端在它的**父目录**打开；
-3. 右键任意项 → 「Lucus：复制路径」→ 粘贴得到完整 POSIX 路径。
-
-### 5.4 菜单不显示时排查
-
-- **系统设置 → 键盘 → 键盘快捷键 → 服务**：勾选对应项（新服务默认启用，但可在此确认）；
-- 服务项可能藏在「服务」子菜单里，动作少于 5 个才会直接上主菜单；
-- Info.plist 改动后务必重新构建 + 重注册，必要时 `killall Finder`；
-- 右键**空白处**不会出现——服务绑定在选中的文件/文件夹上。
+- **无法运行时真隐藏动作**：NSServices 静态菜单是机制内上限；当前用 行为门控 + 系统面板。要动态装卸需 `.service` 附加包（写 `~/Library/Services`，需评估关沙盒/签名）。
+- **读操作为主线程同步**：超大文件算哈希会短暂卡 UI；后续可挪后台线程（沙盒读授权进程内有效，后台线程可读）。
+- **终端/编辑器候选固定**：暂不支持"在设置里选任意 .app"（需 NSOpenPanel + security-scoped bookmark 记忆）。
+- **多选**：多数动作只处理首个；仅 AirDrop 全量。可扩展"复制全部路径/批量哈希"。
+- **「打开」类在多款未装的终端/编辑器**：菜单已精简为默认驱动单入口，避免空菜单项。
+- **待实测回填**：iTerm2 / Warp / Ghostty 及 VSCode / Cursor / Sublime / CotEditor 的实际打开结果（见 §2.4-⑥⑦ 与 3.2），按你机器实测后更新。
 
 ---
 
-## 6. 如何扩展新动作（例：用 VSCode 打开）
-
-两步即可新增一个右键动作：
-
-1. **Info.plist**：在 `NSServices` 数组里复制一个 dict，改菜单名与 `NSMessage`（如 `openInVSCode`）；
-2. **ServicesProvider.swift**：加一个同名的 `@objc` 方法，从粘贴板取路径后执行：
-
-```swift
-@objc func openInVSCode(_ pboard: NSPasteboard,
-                        userData: String,
-                        error: AutoreleasingUnsafeMutablePointer<NSString?>) {
-    guard let url = ... else { return }
-    let app = URL(fileURLWithPath: "/Applications/Visual Studio Code.app")
-    NSWorkspace.shared.open([url], withApplicationAt: app,
-                            configuration: NSWorkspace.OpenConfiguration())
-}
-```
-
-## 7. 已知局限与后续方向
-
-- **主窗口会弹出**：服务调用时若 App 未运行，会启动并弹出主窗口。可改为 `LSUIElement`（菜单栏工具）抑制窗口；
-- **Terminal 路径写死**：目前指向系统 Terminal，可扩展支持 iTerm / 用户自定义；
-- **多选只取第一个**：当前只处理第一个路径，可按需遍历全部。
-
----
-
-*文档对应实现：git status 中 `Info.plist`、`ServicesProvider.swift` 为新增，`Lucus_FinderApp.swift`、`ContentView.swift`、`project.pbxproj` 为修改。*
+*实现对应：`Info.plist`（NSServices×11）、`ServicesProvider.swift`（动作集+门控）、`Lucus_FinderApp.swift`（后台化）与新增 14 个功能/UI 模块，见 §4.1。测试：`Lucus-FinderTests/`。*

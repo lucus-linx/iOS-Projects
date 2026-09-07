@@ -5,7 +5,10 @@
 	<!--
 		注册 Finder 右键“服务”菜单项。
 		GENERATE_INFOPLIST_FILE = YES，本文件仅提供 NSServices，其余键由 Xcode 生成合并。
-		新增动作：复制一个 dict 到数组里，NSMessage 需与 ServicesProvider 的 @objc 方法名一致。
+		新增/删除动作：同步改这里 + ServicesProvider.swift（NSMessage 必须与 @objc 方法名一致），
+		并通过 ActionConfig.ActionID 纳入设置页开关。
+		命名规则：去掉品牌前缀，用分类 token 做首段（终端/编辑器/工程/工具/信息/分享），
+		利用 Finder 按名称排序的特性让同类动作在“服务”子菜单里自然聚簇。
 	-->
 	<key>NSServices</key>
 	<array>
@@ -13,7 +16,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Lucus：在此处打开终端</string>
+				<string>终端：在此处打开</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>openTerminalHere</string>
@@ -28,10 +31,145 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Lucus：复制路径</string>
+				<string>编辑器：在此处打开</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>openInEditor</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>工程：用 Xcode 打开</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>openInXcode</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>工具：复制路径</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>copyPath</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>工具：复制文件名</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>copyFileName</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>工具：复制文件名（无后缀）</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>copyBaseName</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>工具：复制为 file:// 链接</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>copyFileURL</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>信息：计算并复制 MD5</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>copyMD5</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>信息：计算并复制 SHA-256</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>copySHA256</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>信息：显示简介</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>showInfoPanel</string>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSRequiredContext</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>分享：隔空投送…</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>airDropFile</string>
 			<key>NSSendFileTypes</key>
 			<array>
 				<string>public.item</string>
